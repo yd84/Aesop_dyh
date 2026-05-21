@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Vectoria | Responsive Product Page</title>
+  <style>
+    :root {
+      --bg: #efe8dc;
+      --panel: #e8dfd2;
+      --panel-deep: #e5dac9;
+      --ink: #27231e;
+      --ink-2: #3d352b;
+      --muted: #5e5548;
+      --muted-2: #6b6153;
+      --cream: #efe8dc;
+      --dark: #2e2923;
+      --footer: #27231e;
+      --line: rgba(61, 53, 43, 0.14);
+      --line-strong: rgba(61, 53, 43, 0.22);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+    body.drawer-lock { overflow: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    button:focus-visible, a:focus-visible {
+      outline: 2px solid rgba(39, 35, 30, 0.45);
+      outline-offset: 3px;
+    }
+    ::selection { background: var(--ink); color: var(--cream); }
+
+    .marquee-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      z-index: 40;
+      overflow: hidden;
+      background: var(--dark);
+      color: var(--cream);
+      padding: 10px 0;
+    }
+    @keyframes seamless-marquee {
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(-50%, 0, 0); }
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      white-space: nowrap;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      animation: seamless-marquee 136s linear infinite;
+      will-change: transform;
+    }
+    .marquee-group { display: flex; flex-shrink: 0; }
+    .marquee-item { margin: 0 28px; }
+
+    .site-header {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 37px;
+      z-index: 40;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(61, 53, 43, 0.12);
+      background: rgba(239, 232, 220, 0.92);
+      backdrop-filter: blur(14px);
+      padding: 0 16px;
+    }
+    .brand {
+      margin-right: auto;
+      font-size: 16px;
+      letter-spacing: 0.12em;
+      font-weight: 400;
+    }
+    .desktop-nav {
+      display: none;
+      align-items: center;
+      gap: 32px;
+      font-size: 13px;
+    }
+    .desktop-nav a:hover, .header-action:hover { opacity: 0.6; }
+    .header-actions { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .header-action {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.2s ease, background 0.2s ease;
+    }
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      transition: background 0.2s ease;
+    }
+    .icon-btn:hover { background: rgba(61, 53, 43, 0.08); }
+    .mobile-menu-btn { margin-right: 12px; }
+    .hide-on-mobile { display: none; }
+
+    main { padding-top: 101px; padding-bottom: 96px; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: rgba(61, 53, 43, 0.12);
+    }
+    .gallery-btn { display: block; width: 100%; text-align: left; overflow: hidden; }
+
+    .product-visual {
+      position: relative;
+      overflow: hidden;
+      min-height: 320px;
+      background: var(--panel);
+    }
+    .product-visual.large { min-height: 460px; }
+    .product-visual.compact { width: 100%; height: 100%; min-height: 0; }
+    .visual-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 35%, rgba(255,248,230,0.9), rgba(216,203,184,0.55) 35%, rgba(189,174,151,0.28) 63%, transparent 72%);
+    }
+    .visual-bottom {
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 50%;
+      background: linear-gradient(to top, rgba(198,183,158,0.4), transparent);
+    }
+    .visual-object {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(18px);
+      opacity: 0;
+      transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s ease;
+    }
+    .product-visual.in-view .visual-object,
+    .product-visual.compact .visual-object {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .visual-core {
+      position: relative;
+      height: 58%;
+      width: 54%;
+      min-width: 210px;
+      max-width: 420px;
+    }
+    .product-visual.compact .visual-core { height: 76%; width: 76%; min-width: 0; }
+    .lamp-ring {
+      position: absolute;
+      left: 50%;
+      top: 8%;
+      height: 46%;
+      width: 46%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      border: 1px solid rgba(77, 70, 61, 0.2);
+      background: rgba(245, 238, 224, 0.7);
+      box-shadow: 0 30px 80px rgba(60,47,35,0.22);
+      backdrop-filter: blur(3px);
+    }
+    .lamp-glow {
+      position: absolute;
+      left: 50%;
+      top: 19%;
+      height: 32%;
+      width: 32%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: rgba(255, 246, 220, 0.7);
+      filter: blur(18px);
+    }
+    .lamp-neck {
+      position: absolute;
+      left: 50%;
+      top: 47%;
+      height: 28%;
+      width: 13%;
+      transform: translateX(-50%);
+      border-radius: 999px 999px 0 0;
+      background: linear-gradient(to bottom, #8b785c, #5f513e, #302a22);
+      box-shadow: 0 25px 50px rgba(44,35,26,0.32);
+    }
+    .lamp-base {
+      position: absolute;
+      left: 50%;
+      top: 69%;
+      height: 9%;
+      width: 54%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: linear-gradient(to right, #332c22, #8c795d, #332c22);
+      box-shadow: 0 16px 40px rgba(44,35,26,0.32);
+    }
+    .lamp-shadow {
+      position: absolute;
+      left: 50%;
+      top: 79%;
+      height: 5%;
+      width: 78%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: rgba(44, 38, 31, 0.8);
+      filter: blur(1px);
+    }
+    .axis-x {
+      position: absolute;
+      left: 50%;
+      top: 36%;
+      height: 1px;
+      width: 120%;
+      transform: translateX(-50%);
+      background: rgba(77, 70, 61, 0.2);
+    }
+    .axis-y {
+      position: absolute;
+      left: 50%;
+      top: 36%;
+      height: 120%;
+      width: 1px;
+      transform: translateX(-50%);
+      background: rgba(77, 70, 61, 0.16);
+    }
+    .visual-label {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(75, 68, 57, 0.7);
+    }
+    .visual-ring {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      width: 56px;
+      height: 56px;
+      border: 1px solid rgba(61, 53, 43, 0.25);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-2);
+      font-size: 12px;
+    }
+
+    .hero-panel {
+      padding: 32px 20px;
+    }
+    .eyebrow {
+      margin: 0 0 16px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+    .hero-title {
+      margin: 0 0 24px;
+      font-size: clamp(40px, 11vw, 54px);
+      line-height: 0.94;
+      letter-spacing: -0.05em;
+      font-weight: 400;
+    }
+    .copy-block {
+      color: #4d463d;
+      font-size: 15px;
+      line-height: 2;
+    }
+    .copy-block p { margin: 0 0 20px; }
+    .link-button {
+      border-bottom: 1px solid var(--ink);
+      padding-bottom: 2px;
+    }
+    .hidden-copy {
+      height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: height 0.28s ease, opacity 0.28s ease;
+    }
+    .hidden-copy.open { opacity: 1; }
+
+    .variant-box {
+      margin-top: 32px;
+      border-top: 1px solid rgba(61,53,43,0.18);
+      border-bottom: 1px solid rgba(61,53,43,0.18);
+      padding: 24px 0;
+    }
+    .variant-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .variant-head span:first-child { font-size: 14px; color: var(--muted); }
+    .variant-price { font-size: 18px; }
+    .variant-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .variant-btn {
+      min-height: 48px;
+      border: 1px solid rgba(61, 53, 43, 0.2);
+      padding: 0 12px;
+      text-align: left;
+      font-size: 13px;
+      transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+    .variant-btn:hover { border-color: var(--ink); }
+    .variant-btn.selected {
+      background: var(--ink);
+      color: var(--cream);
+      border-color: var(--ink);
+    }
+    .primary-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 56px;
+      margin-top: 24px;
+      padding: 0 20px;
+      background: var(--ink);
+      color: var(--cream);
+      font-size: 14px;
+      transition: background 0.2s ease;
+    }
+    .primary-btn:hover { background: #171411; }
+    .desktop-only-btn { display: none; }
+    .note {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.85;
+    }
+    .note p { margin: 0; }
+
+    .section {
+      border-top: 1px solid rgba(61,53,43,0.12);
+      padding: 64px 20px;
+    }
+    .section-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .section-title {
+      max-width: 430px;
+      margin: 0;
+      font-size: clamp(32px, 8vw, 48px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      font-weight: 400;
+    }
+    .craft-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: rgba(61,53,43,0.16);
+    }
+    .craft-card {
+      min-height: 240px;
+      background: var(--bg);
+      padding: 24px;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: transform 0.6s ease, opacity 0.6s ease;
+    }
+    .craft-card.in-view { transform: translateY(0); opacity: 1; }
+    .craft-index {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgba(61,53,43,0.22);
+      font-size: 13px;
+      margin-bottom: 32px;
+    }
+    .craft-card h3 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+    }
+    .craft-place {
+      margin: 0 0 24px;
+      font-size: 13px;
+      color: var(--muted-2);
+    }
+    .craft-copy {
+      margin: 0;
+      color: #4d463d;
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    .specs-grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .spec-visual-wrap {
+      background: var(--panel-deep);
+      padding: 16px;
+    }
+    .accordion-group { align-self: center; }
+    .accordion {
+      border-top: 1px solid rgba(61,53,43,0.18);
+      padding: 20px 0;
+    }
+    .accordion-trigger {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 15px;
+    }
+    .chevron { transition: transform 0.24s ease; }
+    .accordion.open .chevron { transform: rotate(180deg); }
+    .accordion-body {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.32s ease, opacity 0.26s ease;
+      color: #4d463d;
+      font-size: 14px;
+      line-height: 1.9;
+    }
+    .accordion.open .accordion-body { max-height: 720px; opacity: 1; }
+    .accordion-content { padding-top: 16px; }
+    .data-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+      border-bottom: 1px solid rgba(61,53,43,0.12);
+      padding: 12px 0;
+    }
+    .data-row span:first-child { color: var(--muted-2); }
+
+    .quote-section {
+      border-top: 1px solid rgba(61,53,43,0.12);
+      border-bottom: 1px solid rgba(61,53,43,0.12);
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .quote-text {
+      max-width: 900px;
+      margin: 0 auto;
+      font-size: clamp(30px, 9vw, 56px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      font-weight: 400;
+    }
+    .quote-source {
+      margin: 32px 0 0;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      color: var(--muted-2);
+    }
+
+    .footer {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: rgba(61,53,43,0.16);
+    }
+    .footer-card {
+      min-height: 190px;
+      background: var(--footer);
+      color: var(--cream);
+      padding: 28px;
+    }
+    .footer-card h4 {
+      margin: 0 0 28px;
+      font-size: 15px;
+      font-weight: 400;
+    }
+    .footer-card p {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: #cfc4b3;
+    }
+
+    .mobile-sticky {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 40;
+      border-top: 1px solid rgba(61,53,43,0.14);
+      background: rgba(239,232,220,0.95);
+      backdrop-filter: blur(14px);
+      padding: 16px 16px calc(var(--safe-bottom) + 16px);
+    }
+    .mobile-sticky .primary-btn { margin: 0; height: auto; min-height: 52px; padding-top: 14px; padding-bottom: 14px; }
+
+    .drawer-overlay,
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(0,0,0,0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+    .drawer-overlay.open,
+    .lightbox.open { opacity: 1; pointer-events: auto; }
+    .drawer {
+      margin-left: auto;
+      height: 100%;
+      width: 100%;
+      max-width: 448px;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.24);
+      transform: translateX(100%);
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .drawer.small { max-width: 384px; }
+    .drawer-overlay.open .drawer { transform: translateX(0); }
+    .drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(61,53,43,0.14);
+      padding: 24px;
+    }
+    .drawer-head h3 { margin: 0; font-size: 20px; font-weight: 400; }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 24px; }
+    .drawer-foot {
+      border-top: 1px solid rgba(61,53,43,0.14);
+      padding: 24px 24px calc(var(--safe-bottom) + 24px);
+    }
+    .drawer-menu a {
+      display: block;
+      border-bottom: 1px solid rgba(61,53,43,0.12);
+      padding: 16px 0;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+    }
+    .drawer-subaction {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 32px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .field-label {
+      margin: 0 0 12px;
+      color: var(--muted-2);
+      font-size: 13px;
+    }
+    .option-list, .language-grid { display: grid; gap: 8px; }
+    .option-list { margin-bottom: 32px; }
+    .option-btn {
+      border: 1px solid rgba(61,53,43,0.18);
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 14px;
+    }
+    .option-btn:hover { border-color: var(--ink); }
+    .cart-row {
+      display: flex;
+      gap: 16px;
+      border-bottom: 1px solid rgba(61,53,43,0.14);
+      padding-bottom: 24px;
+    }
+    .cart-thumb {
+      width: 96px;
+      height: 96px;
+      flex: none;
+      overflow: hidden;
+      background: #e1d5c2;
+    }
+    .cart-info { min-width: 0; flex: 1; }
+    .cart-title { margin: 0 0 4px; font-size: 15px; }
+    .cart-label { margin: 0 0 16px; font-size: 13px; color: var(--muted-2); }
+    .qty { display: flex; align-items: center; gap: 12px; }
+    .qty button {
+      width: 23px;
+      height: 23px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgba(61,53,43,0.2);
+    }
+    .cart-price { margin: 0; font-size: 14px; }
+
+    .lightbox {
+      z-index: 60;
+      background: rgba(21,18,15,0.95);
+      padding: 16px;
+    }
+    .lightbox-inner {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lightbox-card {
+      width: min(100%, 900px);
+      overflow: hidden;
+      border-radius: 2px;
+    }
+    .lightbox-close {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      z-index: 2;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--cream);
+    }
+
+    .svg-icon { width: 18px; height: 18px; display: inline-block; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .svg-sm { width: 14px; height: 14px; }
+
+    @media (min-width: 640px) {
+      .marquee-bar { padding: 12px 0; }
+      .marquee-track { font-size: 13px; }
+      .marquee-item { margin: 0 40px; }
+      .site-header { top: 41px; height: 80px; padding: 0 24px; }
+      main { padding-top: 121px; }
+      .brand { font-size: 18px; }
+      .product-visual { min-height: 420px; }
+      .product-visual.large { min-height: 560px; }
+      .visual-label { left: 32px; top: 32px; font-size: 12px; }
+      .visual-ring { right: 32px; bottom: 32px; width: 80px; height: 80px; font-size: 14px; }
+      .visual-core { min-width: 240px; }
+      .hero-panel { padding: 40px 32px; }
+      .variant-grid { grid-template-columns: 1fr 1fr; }
+      .section { padding: 80px 24px; }
+      .craft-card { min-height: 280px; padding: 32px; }
+      .craft-index { width: 48px; height: 48px; margin-bottom: 40px; }
+      .craft-card h3 { font-size: 24px; }
+      .craft-place { margin-bottom: 32px; }
+      .spec-visual-wrap { padding: 32px; }
+      .data-row { grid-template-columns: 42% 58%; gap: 0; }
+      .quote-section { padding: 96px 24px; }
+      .quote-source { font-size: 14px; }
+      .footer { grid-template-columns: 1fr 1fr; }
+      .footer-card { min-height: 220px; padding: 32px; }
+      .drawer-head, .drawer-body { padding: 32px; }
+      .drawer-foot { padding: 32px 32px calc(var(--safe-bottom) + 32px); }
+      .drawer-head h3 { font-size: 22px; }
+      .language-grid { grid-template-columns: 1fr 1fr; }
+      .cart-row { gap: 20px; }
+      .lightbox { padding: 24px; }
+      .lightbox-close { right: 24px; top: 24px; }
+    }
+
+    @media (min-width: 768px) {
+      .site-header { padding: 0 40px; }
+      .mobile-menu-btn { display: none; }
+      .desktop-nav { display: flex; }
+      .hide-on-mobile { display: inline-flex; }
+      .brand { margin-right: 0; }
+      .gallery { grid-template-columns: 1fr 1fr; }
+      .gallery-btn:first-child { grid-column: span 2; }
+      .craft-grid { grid-template-columns: 1fr 1fr; }
+      .section { padding-left: 48px; padding-right: 48px; }
+      .quote-section { padding-left: 48px; padding-right: 48px; }
+    }
+
+    @media (min-width: 1024px) {
+      main { padding-bottom: 0; }
+      .hero-grid { grid-template-columns: 64% 36%; }
+      .hero-panel-wrap {
+        position: sticky;
+        top: 121px;
+        height: calc(100vh - 121px);
+      }
+      .hero-panel {
+        min-height: 100%;
+        padding: 40px 56px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .product-visual { min-height: 520px; }
+      .product-visual.large { min-height: 690px; }
+      .desktop-only-btn { display: flex; }
+      .mobile-sticky { display: none; }
+      .section { padding: 96px 80px; }
+      .section-inner { grid-template-columns: 36% 64%; gap: 64px; }
+      .specs-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+      .spec-visual-wrap { padding: 48px; }
+      .quote-section { padding: 112px 48px; }
+      .footer { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="marquee-bar" aria-label="欢迎字幕">
+    <div class="marquee-track" id="marqueeTrack"></div>
+  </div>
+
+  <header class="site-header">
+    <button class="icon-btn mobile-menu-btn" data-open-drawer="menu" aria-label="打开菜单">
+      <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+    </button>
+    <a href="#top" class="brand">VECTORIA</a>
+    <nav class="desktop-nav" aria-label="主导航">
+      <a href="#craft">技术路径</a>
+      <a href="#specs">系统参数</a>
+      <a href="#quote">项目愿景</a>
+    </nav>
+    <div class="header-actions">
+      <button class="header-action hide-on-mobile" data-open-drawer="region">
+        <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.5 15.5 0 0 1 0 20M12 2a15.5 15.5 0 0 0 0 20"/></svg>
+        CN / ZH
+      </button>
+      <button class="header-action icon-btn" data-open-drawer="cart" aria-label="预约清单">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M6 8h12l-1 13H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+        <span class="hide-on-mobile">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero-grid">
+      <div class="gallery" id="gallery"></div>
+
+      <aside class="hero-panel-wrap">
+        <div class="hero-panel">
+          <div>
+            <p class="eyebrow">原创高端产品页原型</p>
+            <h1 class="hero-title">Vectoria</h1>
+            <div class="copy-block">
+              <p>一套面向四轮独立驱动电动汽车的协同控制展示系统，以稳定性识别、转矩矢量分配和半实物验证为核心，为复杂工况下的车辆安全运行提供可解释的控制框架。</p>
+              <div class="hidden-copy" id="hiddenCopy">
+                <p>页面内容可替换为你的科研项目、产品原型或团队成果。当前版本以“奢侈品级产品叙事”的方式呈现工程系统：克制、留白、强调细节与可信度。</p>
+              </div>
+              <button class="link-button" id="readMoreBtn">展开阅读</button>
+            </div>
+
+            <div class="variant-box">
+              <div class="variant-head">
+                <span>项目展示版本</span>
+                <span class="variant-price" id="variantPrice">€2,850</span>
+              </div>
+              <div class="variant-grid" id="variantGrid"></div>
+            </div>
+
+            <button class="primary-btn desktop-only-btn" data-open-drawer="cart">
+              <span>预约项目演示</span>
+              <svg class="svg-icon svg-sm" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </button>
+
+            <div class="note">
+              <p>适用于：项目汇报、技术展示、成果转化介绍与高端产品官网。</p>
+              <p>当前文字与图片均为占位内容，可继续替换。</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="craft">
+      <div class="section-inner">
+        <div>
+          <p class="eyebrow">TECHNICAL NARRATIVE</p>
+          <h2 class="section-title">从物理建模到实时控制的完整路径</h2>
+        </div>
+        <div class="craft-grid" id="craftGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="specs">
+      <div class="specs-grid">
+        <div class="spec-visual-wrap" id="specVisual"></div>
+        <div class="accordion-group">
+          <div class="accordion open">
+            <button class="accordion-trigger" type="button">
+              <span>系统维度</span>
+              <svg class="svg-icon svg-sm chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="accordion-body"><div class="accordion-content" id="dimensionsRows"></div></div>
+          </div>
+          <div class="accordion open">
+            <button class="accordion-trigger" type="button">
+              <span>技术规格</span>
+              <svg class="svg-icon svg-sm chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="accordion-body"><div class="accordion-content" id="specRows"></div></div>
+          </div>
+          <div class="accordion">
+            <button class="accordion-trigger" type="button">
+              <span>交付说明</span>
+              <svg class="svg-icon svg-sm chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="accordion-body">
+              <div class="accordion-content">当前页面可以继续改成完整 HTML、React/Vite 项目或 PPT 嵌入式展示页。视觉图可替换为实物图、实验平台图、CarSim 动画截图或控制框图。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quote-section" id="quote">
+      <p class="quote-text">“让每一个轮端都成为可感知、可协同、可优化的智能执行单元。”</p>
+      <p class="quote-source">VECTORIA CONTROL SYSTEM</p>
+    </section>
+
+    <footer class="footer" id="footer"></footer>
+  </main>
+
+  <div class="mobile-sticky">
+    <button class="primary-btn" data-open-drawer="cart">
+      <span>预约项目演示</span>
+      <svg class="svg-icon svg-sm" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg>
+    </button>
+  </div>
+
+  <div class="drawer-overlay" id="menuDrawer" aria-hidden="true">
+    <div class="drawer small" role="dialog" aria-modal="true" aria-label="菜单">
+      <div class="drawer-head">
+        <h3>菜单</h3>
+        <button class="icon-btn" data-close-drawer aria-label="关闭菜单"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="drawer-body">
+        <nav class="drawer-menu">
+          <a href="#top" data-close-drawer>首页</a>
+          <a href="#craft" data-close-drawer>技术路径</a>
+          <a href="#specs" data-close-drawer>系统参数</a>
+          <a href="#quote" data-close-drawer>项目愿景</a>
+        </nav>
+        <button class="drawer-subaction" data-switch-drawer="region">
+          <svg class="svg-icon svg-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.5 15.5 0 0 1 0 20M12 2a15.5 15.5 0 0 0 0 20"/></svg>
+          CN / ZH
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-overlay" id="regionDrawer" aria-hidden="true">
+    <div class="drawer" role="dialog" aria-modal="true" aria-label="地区与语言">
+      <div class="drawer-head">
+        <h3>地区与语言</h3>
+        <button class="icon-btn" data-close-drawer aria-label="关闭地区与语言"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="drawer-body">
+        <p class="field-label">地区</p>
+        <div class="option-list">
+          <button class="option-btn">中国大陆</button>
+          <button class="option-btn">中国香港</button>
+          <button class="option-btn">欧洲</button>
+          <button class="option-btn">美国</button>
+          <button class="option-btn">日本</button>
+          <button class="option-btn">澳洲</button>
+        </div>
+        <p class="field-label">语言</p>
+        <div class="language-grid">
+          <button class="option-btn">简体中文</button>
+          <button class="option-btn">English</button>
+          <button class="option-btn">日本語</button>
+          <button class="option-btn">Deutsch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-overlay" id="cartDrawer" aria-hidden="true">
+    <div class="drawer" role="dialog" aria-modal="true" aria-label="预约清单">
+      <div class="drawer-head">
+        <h3>预约清单</h3>
+        <button class="icon-btn" data-close-drawer aria-label="关闭预约清单"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="drawer-body">
+        <div class="cart-row">
+          <div class="cart-thumb" id="cartThumb"></div>
+          <div class="cart-info">
+            <p class="cart-title">Vectoria 协同控制系统</p>
+            <p class="cart-label" id="cartLabel">中国/香港标准</p>
+            <div class="qty">
+              <button aria-label="减少"><svg class="svg-icon svg-sm" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+              <span>1</span>
+              <button aria-label="增加"><svg class="svg-icon svg-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+            </div>
+          </div>
+          <p class="cart-price">演示</p>
+        </div>
+      </div>
+      <div class="drawer-foot">
+        <button class="primary-btn" style="margin:0;">提交预约需求</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lightbox-close" id="lightboxClose" aria-label="关闭图片预览"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="lightbox-inner">
+      <div class="lightbox-card" id="lightboxCard"></div>
+    </div>
+  </div>
+
+  <script>
+    const MARQUEE_TEXT = "歡迎來到東南大學電氣工程學院，於此獨家探索丁月恆的世界。";
+    const labels = ["整体系统", "轮端协同", "控制算法", "验证平台"];
+    const rings = ["78%", "58%", "68%", "48%"];
+    const variants = [
+      { id: "eu", label: "欧洲标准", price: "€2,850" },
+      { id: "uk", label: "英美日标准", price: "€2,850" },
+      { id: "cn", label: "中国/香港标准", price: "€2,850" },
+      { id: "au", label: "澳洲标准", price: "€2,850" }
+    ];
+    const craftSteps = [
+      { title: "系统建模", place: "动力学 · 多执行器耦合", copy: "从车身、轮端与电机三层结构出发，建立可解释的协同动力学模型，使每一次转矩分配都拥有清晰的物理依据。" },
+      { title: "稳定性评估", place: "横摆角速度 · 质心侧偏角", copy: "将稳定裕度转化为连续可计算的评价量，实时识别车辆从安全域向极限域演化的过程。" },
+      { title: "转矩矢量分配", place: "四轮独立驱动 · 约束优化", copy: "在轮胎附着、执行器能力和能效边界内，计算四个轮端的最优转矩组合，兼顾稳定、平顺与高效。" },
+      { title: "半实物验证", place: "dSPACE · FPGA · CarSim", copy: "通过实时控制器、轮端电机仿真与整车模型闭环联调，验证算法在复杂工况下的工程可执行性。" }
+    ];
+    const specs = [
+      ["应用对象", "四轮独立驱动电动汽车"],
+      ["控制架构", "上层稳定性控制 / 中层优化决策 / 下层转矩分配"],
+      ["核心变量", "横摆角速度、质心侧偏角、轮端转矩"],
+      ["约束条件", "轮胎附着椭圆、转矩边界、功率限制、平顺性约束"],
+      ["验证方式", "CarSim–Simulink 联合仿真与 dSPACE 半实物验证"],
+      ["目标效果", "稳定性提升、能耗降低、转矩冲击抑制"]
+    ];
+    const dimensions = [
+      ["系统层级", "3 层"],
+      ["执行单元", "4 个轮端电机"],
+      ["控制周期", "毫秒级"],
+      ["接口对象", "车辆模型 / 电机模型 / 实时控制器"],
+      ["适用工况", "低附着、双移线、故障重构"],
+      ["输出形式", "四轮目标转矩"]
+    ];
+    const footerItems = [
+      ["项目介绍", "系统概览", "核心优势", "应用场景"],
+      ["技术支持", "验证平台", "算法说明", "常见问题"],
+      ["合作方式", "联系团队", "预约演示", "成果转化"],
+      ["法律信息", "隐私政策", "服务条款", "Cookie 政策"]
+    ];
+
+    let selectedVariant = "cn";
+
+    function iconArrow() {
+      return '<svg class="svg-icon svg-sm" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg>';
+    }
+
+    function productVisual(index, options = {}) {
+      const cls = ["product-visual", options.large ? "large" : "", options.compact ? "compact" : ""].filter(Boolean).join(" ");
+      return `
+        <div class="${cls}" data-animate>
+          <div class="visual-bg"></div>
+          <div class="visual-bottom"></div>
+          <div class="visual-object">
+            <div class="visual-core">
+              <div class="lamp-ring"></div>
+              <div class="lamp-glow"></div>
+              <div class="lamp-neck"></div>
+              <div class="lamp-base"></div>
+              <div class="lamp-shadow"></div>
+              <div class="axis-x"></div>
+              <div class="axis-y"></div>
+            </div>
+          </div>
+          ${options.compact ? "" : `<div class="visual-label">${labels[index]}</div><div class="visual-ring">${rings[index]}</div>`}
+        </div>`;
+    }
+
+    function renderInitial() {
+      const marqueeTrack = document.getElementById("marqueeTrack");
+      marqueeTrack.innerHTML = [0, 1].map(group => `
+        <div class="marquee-group">
+          ${Array.from({ length: 10 }).map((_, i) => `<span class="marquee-item">${MARQUEE_TEXT}</span>`).join("")}
+        </div>
+      `).join("");
+
+      document.getElementById("gallery").innerHTML = [0, 1, 2, 3].map(index => `
+        <button class="gallery-btn" data-lightbox-index="${index}">${productVisual(index, { large: index === 0 })}</button>
+      `).join("");
+
+      document.getElementById("variantGrid").innerHTML = variants.map(v => `
+        <button class="variant-btn ${v.id === selectedVariant ? "selected" : ""}" data-variant="${v.id}">${v.label}</button>
+      `).join("");
+
+      document.getElementById("craftGrid").innerHTML = craftSteps.map((step, idx) => `
+        <article class="craft-card" data-animate style="transition-delay:${idx * 80}ms">
+          <div class="craft-index">0${idx + 1}</div>
+          <h3>${step.title}</h3>
+          <p class="craft-place">${step.place}</p>
+          <p class="craft-copy">${step.copy}</p>
+        </article>
+      `).join("");
+
+      document.getElementById("specVisual").innerHTML = productVisual(1);
+      document.getElementById("cartThumb").innerHTML = productVisual(2, { compact: true });
+      document.getElementById("dimensionsRows").innerHTML = dimensions.map(row => `<div class="data-row"><span>${row[0]}</span><span>${row[1]}</span></div>`).join("");
+      document.getElementById("specRows").innerHTML = specs.map(row => `<div class="data-row"><span>${row[0]}</span><span>${row[1]}</span></div>`).join("");
+      document.getElementById("footer").innerHTML = footerItems.map(item => `
+        <div class="footer-card"><h4>${item[0]}</h4><p>${item[1]}</p><p>${item[2]}</p><p>${item[3]}</p></div>
+      `).join("");
+    }
+
+    function updateVariant(id) {
+      selectedVariant = id;
+      const variant = variants.find(v => v.id === id) || variants[0];
+      document.getElementById("variantPrice").textContent = variant.price;
+      document.getElementById("cartLabel").textContent = variant.label;
+      document.querySelectorAll(".variant-btn").forEach(btn => {
+        btn.classList.toggle("selected", btn.dataset.variant === id);
+      });
+    }
+
+    function getDrawer(id) {
+      return document.getElementById(`${id}Drawer`);
+    }
+    function openDrawer(id) {
+      closeAllDrawers(false);
+      const drawer = getDrawer(id);
+      if (!drawer) return;
+      drawer.classList.add("open");
+      drawer.setAttribute("aria-hidden", "false");
+      document.body.classList.add("drawer-lock");
+    }
+    function closeAllDrawers(unlock = true) {
+      document.querySelectorAll(".drawer-overlay").forEach(drawer => {
+        drawer.classList.remove("open");
+        drawer.setAttribute("aria-hidden", "true");
+      });
+      if (unlock) document.body.classList.remove("drawer-lock");
+    }
+
+    function openLightbox(index) {
+      const lightbox = document.getElementById("lightbox");
+      document.getElementById("lightboxCard").innerHTML = productVisual(Number(index), { large: true });
+      lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.classList.add("drawer-lock");
+      requestAnimationFrame(() => {
+        const visual = document.querySelector("#lightboxCard .product-visual");
+        if (visual) visual.classList.add("in-view");
+      });
+    }
+    function closeLightbox() {
+      const lightbox = document.getElementById("lightbox");
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("drawer-lock");
+    }
+
+    function setupEvents() {
+      document.addEventListener("click", (event) => {
+        const openBtn = event.target.closest("[data-open-drawer]");
+        if (openBtn) openDrawer(openBtn.dataset.openDrawer);
+
+        const switchBtn = event.target.closest("[data-switch-drawer]");
+        if (switchBtn) openDrawer(switchBtn.dataset.switchDrawer);
+
+        const closeBtn = event.target.closest("[data-close-drawer]");
+        if (closeBtn) closeAllDrawers();
+
+        const overlay = event.target.classList && event.target.classList.contains("drawer-overlay") ? event.target : null;
+        if (overlay) closeAllDrawers();
+
+        const variantBtn = event.target.closest("[data-variant]");
+        if (variantBtn) updateVariant(variantBtn.dataset.variant);
+
+        const lightboxBtn = event.target.closest("[data-lightbox-index]");
+        if (lightboxBtn) openLightbox(lightboxBtn.dataset.lightboxIndex);
+      });
+
+      document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+      document.getElementById("lightbox").addEventListener("click", (event) => {
+        if (event.target.id === "lightbox") closeLightbox();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeAllDrawers();
+          closeLightbox();
+        }
+      });
+
+      document.querySelectorAll(".accordion-trigger").forEach(trigger => {
+        trigger.addEventListener("click", () => {
+          trigger.closest(".accordion").classList.toggle("open");
+        });
+      });
+
+      const hiddenCopy = document.getElementById("hiddenCopy");
+      const readMoreBtn = document.getElementById("readMoreBtn");
+      readMoreBtn.addEventListener("click", () => {
+        const open = hiddenCopy.classList.toggle("open");
+        if (open) {
+          hiddenCopy.style.height = hiddenCopy.scrollHeight + "px";
+          readMoreBtn.textContent = "收起";
+        } else {
+          hiddenCopy.style.height = hiddenCopy.scrollHeight + "px";
+          requestAnimationFrame(() => { hiddenCopy.style.height = "0px"; });
+          readMoreBtn.textContent = "展开阅读";
+        }
+      });
+      window.addEventListener("resize", () => {
+        if (hiddenCopy.classList.contains("open")) hiddenCopy.style.height = hiddenCopy.scrollHeight + "px";
+      });
+    }
+
+    function setupObserver() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.18, rootMargin: "0px 0px -80px 0px" });
+      document.querySelectorAll("[data-animate]").forEach(el => observer.observe(el));
+    }
+
+    renderInitial();
+    setupEvents();
+    setupObserver();
+  </script>
+</body>
+</html>
